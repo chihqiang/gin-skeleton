@@ -1,0 +1,185 @@
+@host=http://127.0.0.1:8080/api
+@contentType=application/json
+
+### 管理登录
+# @name login
+POST {{host}}/admin/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "123456"
+}
+
+@authToken = {{login.response.body.data.token}}
+
+### 用户管理 - 列表
+# @name listUsers
+GET {{host}}/admin/user
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+### 用户管理 - 创建
+# @name createUser
+POST {{host}}/admin/user/create
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "name": "editor",
+  "email": "editor2@example.com",
+  "password": "123456",
+  "role_ids": [2]
+}
+
+### 用户管理 - 查看
+# @name viewUser
+GET {{host}}/admin/user/view
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+?id=2
+
+### 用户管理 - 编辑
+# @name editUser
+PUT {{host}}/admin/user/edit
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "id": 2,
+  "name": "editor-updated",
+  "email": "editor2@example.com",
+  "role_ids": [2]
+}
+
+### 用户管理 - 删除
+# @name deleteUser
+DELETE {{host}}/admin/user/delete
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "id": 2
+}
+
+### 角色管理 - 列表
+# @name listRoles
+GET {{host}}/admin/role
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+### 角色管理 - 创建
+# @name createRole
+POST {{host}}/admin/role/create
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "name": "editor",
+  "code": "editor",
+  "menu_ids": [1,2,3]
+}
+
+### 角色管理 - 查看
+# @name viewRole
+GET {{host}}/admin/role/view
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+?id=2
+
+### 角色管理 - 编辑
+# @name editRole
+PUT {{host}}/admin/role/edit
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "id": 2,
+  "name": "editor-updated",
+  "code": "editor2",
+  "menu_ids": [1,2,3,4]
+}
+
+### 角色管理 - 删除
+# @name deleteRole
+DELETE {{host}}/admin/role/delete
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "id": 2
+}
+
+### 角色管理 - 权限列表
+# @name roleAuthList
+GET {{host}}/admin/role/auth/list
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+?role_id=2
+
+### 角色管理 - 授权权限
+# @name roleAuth
+POST {{host}}/admin/role/auth
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "role_id": 2,
+  "menu_ids": [1,2,3]
+}
+
+### 菜单管理 - 列表
+# @name listMenus
+GET {{host}}/admin/menu
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+### 菜单管理 - 创建
+# @name createMenu
+POST {{host}}/admin/menu/create
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "name": "新菜单",
+  "path": "/api/admin/new",
+  "method": ["GET"],
+  "parent_id": 0,
+  "type": "menu",
+  "sort": 10,
+  "role_ids": [1,2]
+}
+
+### 菜单管理 - 查看
+# @name viewMenu
+GET {{host}}/admin/menu/view
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+?id=1
+
+### 菜单管理 - 编辑
+# @name editMenu
+PUT {{host}}/admin/menu/edit
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "id": 1,
+  "name": "菜单更新",
+  "path": "/api/admin/updated",
+  "method": ["GET","POST"],
+  "parent_id": 0,
+  "type": "menu",
+  "sort": 1,
+  "role_ids": [1,2]
+}
+
+### 菜单管理 - 删除
+# @name deleteMenu
+DELETE {{host}}/admin/menu/delete
+Content-Type: {{contentType}}
+Authorization: {{authToken}}
+
+{
+  "id": 1
+}
