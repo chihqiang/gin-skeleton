@@ -48,8 +48,13 @@ check:
 # 用于运行单元测试和检查代码状态
 test:
 	@echo "🧪 Running tests..."
-	# 运行测试: 详细输出，覆盖率分析，竞争条件检测，生成覆盖率报告，超时2分钟
+	# 运行单元测试，带详细输出、覆盖率和竞争检测，超时2分钟
 	go test -v -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.txt ./... -run . -timeout=2m
+
+	@echo "🚀 Running benchmark tests (stress/performance)..."
+	# 运行所有基准测试，基准运行时间5秒，单独报告
+	go test -bench=. -benchtime=5s -run=^$$ ./...
+
 	@echo "🔍 Checking git status..."
 	# 检查工作目录是否有未提交的更改
 	@git diff --quiet || (echo "❌ Uncommitted changes detected in working directory!" && git status && exit 1)
