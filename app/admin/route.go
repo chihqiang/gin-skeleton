@@ -11,10 +11,10 @@ import (
 	"wangzhiqiang/skeleton/pkg/httpx/mws"
 )
 
-type adminRoute struct {
+type Route struct {
 }
 
-func (a *adminRoute) Routes(ctx context.Context, g *gin.Engine) error {
+func (a *Route) Routes(ctx context.Context, g *gin.Engine) error {
 	g.NoRoute(func(c *gin.Context) {
 		httpx.ApiErrWithCode(c, fmt.Errorf("not Found"), http.StatusNotFound)
 	})
@@ -73,8 +73,4 @@ func (a *adminRoute) Routes(ctx context.Context, g *gin.Engine) error {
 		}
 	}
 	return nil
-}
-
-func LoadRoute() {
-	httpx.RegisterRoute(&adminRoute{})
 }

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"wangzhiqiang/skeleton/app/admin"
+	_ "wangzhiqiang/skeleton/app/admin"
 	"wangzhiqiang/skeleton/app/apis"
 	"wangzhiqiang/skeleton/pkg/httpx"
 )
@@ -9,5 +9,4 @@ import (
 func init() {
 	httpx.RegisterRoute(&apis.Index{})
 	httpx.RegisterRoute(&apis.Task{})
-	admin.LoadRoute()
 }

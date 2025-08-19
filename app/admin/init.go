@@ -5,6 +5,7 @@ import (
 	"wangzhiqiang/skeleton/app/admin/mock"
 	"wangzhiqiang/skeleton/app/admin/models"
 	"wangzhiqiang/skeleton/pkg/app"
+	"wangzhiqiang/skeleton/pkg/httpx"
 )
 
 type adminAppInit struct {
@@ -26,4 +27,6 @@ func (a *adminAppInit) Init(ctx context.Context) {
 
 func init() {
 	app.RegisterAppInit(&adminAppInit{})
+
+	httpx.RegisterRoute(&Route{})
 }
