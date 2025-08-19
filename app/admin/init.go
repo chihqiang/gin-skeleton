@@ -4,6 +4,7 @@ import (
 	"context"
 	"wangzhiqiang/skeleton/app/admin/mock"
 	"wangzhiqiang/skeleton/app/admin/models"
+	appModels "wangzhiqiang/skeleton/app/models"
 	"wangzhiqiang/skeleton/pkg/app"
 	"wangzhiqiang/skeleton/pkg/httpx"
 )
@@ -20,7 +21,7 @@ func (a *adminAppInit) Init(ctx context.Context) {
 		models.SysUser{},
 		models.SysMenu{},
 		models.SysRole{},
-		models.SysAccessLog{},
+		appModels.SysAccessLog{},
 	)
 	_ = mock.Save(apps.Enforcer, apps.DB)
 }

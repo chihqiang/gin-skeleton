@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"wangzhiqiang/skeleton/app/admin/apis"
 	"wangzhiqiang/skeleton/app/admin/middlewares"
+	appMiddlewares "wangzhiqiang/skeleton/app/middlewares"
 	"wangzhiqiang/skeleton/pkg/app"
 	"wangzhiqiang/skeleton/pkg/httpx"
 	"wangzhiqiang/skeleton/pkg/httpx/mws"
@@ -25,7 +26,7 @@ func (a *Route) Routes(ctx context.Context, g *gin.Engine) error {
 	}
 	jwtAuth := middlewares.JWTAuth(apps.JWT)
 	permission := middlewares.CheckPermission(apps.Enforcer, apps.Config)
-	accessLog := middlewares.AccessLog(apps.DB)
+	accessLog := appMiddlewares.AccessLog(apps.DB)
 	g.Use(mws.Core())
 	api := apis.NewApis(ctx)
 	adminGroup := g.Group("/api/admin")

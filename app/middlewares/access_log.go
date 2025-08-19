@@ -10,7 +10,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
-	"wangzhiqiang/skeleton/app/admin/models"
+	"wangzhiqiang/skeleton/app/admin/middlewares"
+	"wangzhiqiang/skeleton/app/models"
 	"wangzhiqiang/skeleton/pkg/httpx/mws"
 )
 
@@ -41,7 +42,7 @@ func AccessLog(db *gorm.DB) gin.HandlerFunc {
 			}
 		}
 		// 获取用户 ID
-		claims, _ := GetClaims(c)
+		claims, _ := middlewares.GetClaims(c)
 		if claims != nil && claims.UID != 0 {
 			userID = claims.UID
 		}
