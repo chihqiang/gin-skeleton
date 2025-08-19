@@ -38,7 +38,7 @@ func (l *AuthApis) Refresh(c *gin.Context) {
 		httpx.ApiError(c, err)
 		return
 	}
-	resp, err := new(service.AuthService).Refresh(l.ctx, &req)
+	resp, err := l.service.Auth.Refresh(l.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return

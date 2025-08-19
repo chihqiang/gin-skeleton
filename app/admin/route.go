@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"wangzhiqiang/skeleton/app/admin/apis"
 	"wangzhiqiang/skeleton/app/admin/middlewares"
+	"wangzhiqiang/skeleton/pkg/app"
 	"wangzhiqiang/skeleton/pkg/httpx"
 	"wangzhiqiang/skeleton/pkg/httpx/mws"
 )
@@ -18,28 +19,26 @@ func (a *Route) Routes(ctx context.Context, g *gin.Engine) error {
 	g.NoRoute(func(c *gin.Context) {
 		httpx.ApiErrWithCode(c, fmt.Errorf("not Found"), http.StatusNotFound)
 	})
-	jwtAuth, err := middlewares.JWTAuth(ctx)
+	apps, err := app.GetApps(ctx)
 	if err != nil {
 		return err
 	}
-	permission, err := middlewares.CheckPermission(ctx)
-	if err != nil {
-		return err
-	}
+	jwtAuth := middlewares.JWTAuth(apps.JWT)
+	permission := middlewares.CheckPermission(apps.Enforcer, apps.Config)
+	accessLog := middlewares.AccessLog(apps.DB)
 	g.Use(mws.Core())
-
 	api := apis.NewApis(ctx)
-
 	adminGroup := g.Group("/api/admin")
 	{
 		// 登录不需要认证
 		adminGroup.POST("/login", api.Auth.Login)
-		// 刷新token
-		adminGroup.POST("/refresh", api.Auth.Refresh)
-
 		// 用户和角色操作需要认证和权限中间件
 		adminGroup.Use(jwtAuth)
+		adminGroup.Use(accessLog)
 		adminGroup.Use(permission)
+
+		// 刷新token
+		adminGroup.POST("/refresh", api.Auth.Refresh)
 		// 用户管理
 		userGroup := adminGroup.Group("/user")
 		{

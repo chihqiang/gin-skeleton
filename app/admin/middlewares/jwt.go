@@ -1,11 +1,9 @@
 package middlewares
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"wangzhiqiang/skeleton/pkg/app"
 	"wangzhiqiang/skeleton/pkg/httpx"
 	"wangzhiqiang/skeleton/pkg/jwts"
 )
@@ -16,6 +14,7 @@ const CtxKeyUserClaims = "claims"
 func GetClaims(c *gin.Context) (*jwts.Claims, error) {
 	user, exists := c.Get(CtxKeyUserClaims)
 	if !exists {
+
 		return nil, fmt.Errorf("未登录")
 	}
 	claims, ok := user.(*jwts.Claims)
@@ -26,12 +25,7 @@ func GetClaims(c *gin.Context) (*jwts.Claims, error) {
 }
 
 // JWTAuth 返回 JWT 认证中间件
-func JWTAuth(ctx context.Context) (gin.HandlerFunc, error) {
-	apps, err := app.GetApps(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func JWTAuth(jwt *jwts.JWT) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("Authorization")
 		if token == "" {
@@ -40,7 +34,7 @@ func JWTAuth(ctx context.Context) (gin.HandlerFunc, error) {
 			return
 		}
 
-		claims, err := apps.JWT.Parse(token)
+		claims, err := jwt.Parse(token)
 		if err != nil {
 			if errors.Is(err, jwts.TokenExpired) {
 				httpx.ApiNoAuth(c, errors.New("登录已过期，请重新登录"))
@@ -55,5 +49,5 @@ func JWTAuth(ctx context.Context) (gin.HandlerFunc, error) {
 		// 写入 context，供后续中间件使用
 		c.Set(CtxKeyUserClaims, claims)
 		c.Next()
-	}, nil
+	}
 }
