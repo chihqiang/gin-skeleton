@@ -9,20 +9,21 @@ import (
 	"wangzhiqiang/skeleton/pkg/httpx"
 )
 
-type Role struct {
-	ctx context.Context
+type RoleApis struct {
+	ctx     context.Context
+	service *service.Service
 }
 
-func NewRole(ctx context.Context) *Role {
-	return &Role{ctx: ctx}
+func NewRole(ctx context.Context) *RoleApis {
+	return &RoleApis{ctx: ctx, service: new(service.Service)}
 }
-func (r *Role) List(c *gin.Context) {
+func (r *RoleApis) List(c *gin.Context) {
 	var req types.RoleListReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	resp, err := new(service.RoleService).List(r.ctx, &req)
+	resp, err := r.service.Role.List(r.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -30,13 +31,13 @@ func (r *Role) List(c *gin.Context) {
 	httpx.ApiSuccess(c, resp)
 }
 
-func (r *Role) Create(c *gin.Context) {
+func (r *RoleApis) Create(c *gin.Context) {
 	var req types.RoleReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	err := new(service.RoleService).Create(r.ctx, &req)
+	err := r.service.Role.Create(r.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -44,13 +45,13 @@ func (r *Role) Create(c *gin.Context) {
 	httpx.ApiSuccess(c, req)
 }
 
-func (r *Role) View(c *gin.Context) {
+func (r *RoleApis) View(c *gin.Context) {
 	var req types.RoleReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	info, err := new(service.RoleService).View(r.ctx, req.ID)
+	info, err := r.service.Role.View(r.ctx, req.ID)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -58,13 +59,13 @@ func (r *Role) View(c *gin.Context) {
 	httpx.ApiSuccess(c, info)
 }
 
-func (r *Role) Edit(c *gin.Context) {
+func (r *RoleApis) Edit(c *gin.Context) {
 	var req types.RoleReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	err := new(service.RoleService).Edit(r.ctx, &req)
+	err := r.service.Role.Edit(r.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -72,13 +73,13 @@ func (r *Role) Edit(c *gin.Context) {
 	httpx.ApiSuccess(c, map[string]string{})
 }
 
-func (r *Role) Delete(c *gin.Context) {
+func (r *RoleApis) Delete(c *gin.Context) {
 	var req types.RoleReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	err := new(service.RoleService).Delete(r.ctx, req.ID)
+	err := r.service.Role.Delete(r.ctx, req.ID)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -86,13 +87,13 @@ func (r *Role) Delete(c *gin.Context) {
 	httpx.ApiSuccess(c, map[string]string{})
 }
 
-func (r *Role) AuthList(c *gin.Context) {
+func (r *RoleApis) AuthList(c *gin.Context) {
 	claims, err := middlewares.GetClaims(c)
 	if err != nil {
 		httpx.ApiNoAuth(c, err)
 		return
 	}
-	menus, err := new(service.UserService).GetMenus(r.ctx, claims.UID)
+	menus, err := r.service.User.GetMenus(r.ctx, claims.UID)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -100,13 +101,13 @@ func (r *Role) AuthList(c *gin.Context) {
 	httpx.ApiSuccess(c, menus)
 }
 
-func (r *Role) Auth(c *gin.Context) {
+func (r *RoleApis) Auth(c *gin.Context) {
 	var req types.RoleAuthReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	err := new(service.RoleService).Auth(r.ctx, &req)
+	err := r.service.Role.Auth(r.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return

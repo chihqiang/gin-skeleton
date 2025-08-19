@@ -8,22 +8,23 @@ import (
 	"wangzhiqiang/skeleton/pkg/httpx"
 )
 
-type Auth struct {
-	ctx context.Context
+type AuthApis struct {
+	ctx     context.Context
+	service *service.Service
 }
 
-func NewAuth(ctx context.Context) *Auth {
-	return &Auth{ctx: ctx}
+func NewAuth(ctx context.Context) *AuthApis {
+	return &AuthApis{ctx: ctx, service: new(service.Service)}
 }
 
-func (l *Auth) Login(c *gin.Context) {
+func (l *AuthApis) Login(c *gin.Context) {
 	var req types.LoginReq
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
 	req.IP = c.ClientIP()
-	resp, err := new(service.AuthService).Login(l.ctx, &req)
+	resp, err := l.service.Auth.Login(l.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -31,7 +32,7 @@ func (l *Auth) Login(c *gin.Context) {
 	httpx.ApiSuccess[*types.LoginResp](c, resp)
 }
 
-func (l *Auth) Refresh(c *gin.Context) {
+func (l *AuthApis) Refresh(c *gin.Context) {
 	var req types.RefreshTokenReq
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
 		httpx.ApiError(c, err)

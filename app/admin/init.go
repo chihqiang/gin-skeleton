@@ -15,15 +15,12 @@ func (a *adminAppInit) Init(ctx context.Context) {
 	if err != nil {
 		return
 	}
-	err = apps.DB.Migrator().AutoMigrate(
+	_ = apps.DB.Migrator().AutoMigrate(
 		models.SysUser{},
 		models.SysMenu{},
 		models.SysRole{},
 		models.SysAccessLog{},
 	)
-	if err != nil {
-		return
-	}
 	_ = mock.Save(apps.Enforcer, apps.DB)
 }
 

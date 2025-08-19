@@ -8,20 +8,21 @@ import (
 	"wangzhiqiang/skeleton/pkg/httpx"
 )
 
-type Menu struct {
-	ctx context.Context
+type MenuApis struct {
+	ctx     context.Context
+	service *service.Service
 }
 
-func NewMenu(ctx context.Context) *Menu {
-	return &Menu{ctx: ctx}
+func NewMenu(ctx context.Context) *MenuApis {
+	return &MenuApis{ctx: ctx, service: new(service.Service)}
 }
-func (m *Menu) List(c *gin.Context) {
+func (m *MenuApis) List(c *gin.Context) {
 	var req types.MenuListReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	resp, err := new(service.MenuService).List(m.ctx, &req)
+	resp, err := m.service.Menu.List(m.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -29,26 +30,26 @@ func (m *Menu) List(c *gin.Context) {
 	httpx.ApiSuccess(c, resp)
 }
 
-func (m *Menu) Create(c *gin.Context) {
+func (m *MenuApis) Create(c *gin.Context) {
 	var req types.MenuReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	if err := new(service.MenuService).Create(m.ctx, &req); err != nil {
+	if err := m.service.Menu.Create(m.ctx, &req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
 	httpx.ApiSuccess(c, map[string]string{})
 }
 
-func (m *Menu) View(c *gin.Context) {
+func (m *MenuApis) View(c *gin.Context) {
 	var req types.IDReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	info, err := new(service.MenuService).Get(m.ctx, req.ID)
+	info, err := m.service.Menu.Get(m.ctx, req.ID)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -56,13 +57,13 @@ func (m *Menu) View(c *gin.Context) {
 	httpx.ApiSuccess(c, info)
 }
 
-func (m *Menu) Edit(c *gin.Context) {
+func (m *MenuApis) Edit(c *gin.Context) {
 	var req types.MenuReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	err := new(service.MenuService).Edit(m.ctx, &req)
+	err := m.service.Menu.Edit(m.ctx, &req)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
@@ -70,13 +71,13 @@ func (m *Menu) Edit(c *gin.Context) {
 	httpx.ApiSuccess(c, map[string]string{})
 }
 
-func (m *Menu) Delete(c *gin.Context) {
+func (m *MenuApis) Delete(c *gin.Context) {
 	var req types.IDReq
 	if err := c.ShouldBind(&req); err != nil {
 		httpx.ApiError(c, err)
 		return
 	}
-	err := new(service.MenuService).Delete(m.ctx, req.ID)
+	err := m.service.Menu.Delete(m.ctx, req.ID)
 	if err != nil {
 		httpx.ApiError(c, err)
 		return
