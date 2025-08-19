@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 	"wangzhiqiang/skeleton/app/admin/models"
 	"wangzhiqiang/skeleton/app/admin/types"
 	"wangzhiqiang/skeleton/pkg/app"
+	"wangzhiqiang/skeleton/pkg/cryptox"
 )
 
 type AuthService struct {
@@ -16,13 +18,15 @@ func (s *AuthService) Login(ctx context.Context, req *types.LoginReq) (*types.Lo
 	if err != nil {
 		return nil, err
 	}
-	//TODO 增加安全验证
-
 	//查询用户信息
 	var user models.SysUser
 	db := apps.DB
 	if err := db.Model(models.SysUser{}).Where(models.SysUser{Email: req.Email}).First(&user).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf("邮箱不存在")
+	}
+	// 验证密码
+	if !cryptox.HashVerify(req.Password, user.Password) {
+		return nil, fmt.Errorf("密码错误")
 	}
 	jwt := apps.JWT
 	//生成JWT token
@@ -34,6 +38,7 @@ func (s *AuthService) Login(ctx context.Context, req *types.LoginReq) (*types.Lo
 	if err != nil {
 		return nil, err
 	}
+	// 更新用户登录信息
 	db.Model(models.SysUser{}).Where("id = ?", user.ID).Updates(&models.SysUser{
 		LastLogin: time.Now(),
 		LastIp:    req.IP,

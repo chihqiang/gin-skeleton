@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"wangzhiqiang/skeleton/app/admin/models"
 	"wangzhiqiang/skeleton/pkg/casbinx"
+	"wangzhiqiang/skeleton/pkg/cryptox"
 )
 
 func Save(e *casbin.Enforcer, db *gorm.DB) error {
@@ -76,8 +77,8 @@ func Save(e *casbin.Enforcer, db *gorm.DB) error {
 	}
 
 	// ---------------- 创建用户 ----------------
-	adminUser := models.SysUser{Name: "admin", Email: "admin@example.com", Password: "123456", Roles: []*models.SysRole{&adminRole}}
-	editorUser := models.SysUser{Name: "editor", Email: "editor@example.com", Password: "123456", Roles: []*models.SysRole{&editorRole}}
+	adminUser := models.SysUser{Name: "admin", Email: "admin@example.com", Password: cryptox.HashMake("123456"), Roles: []*models.SysRole{&adminRole}}
+	editorUser := models.SysUser{Name: "editor", Email: "editor@example.com", Password: cryptox.HashMake("123456"), Roles: []*models.SysRole{&editorRole}}
 
 	users := []*models.SysUser{&adminUser, &editorUser}
 	for _, u := range users {
