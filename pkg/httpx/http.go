@@ -39,6 +39,8 @@ func (h *HTTP) newGin(ctx context.Context) *gin.Engine {
 	engine := gin.Default()
 	// 使用安全中间件
 	engine.Use(mws.Security())
+	//request
+	engine.Use(mws.RequestID())
 	// 使用会话中间件
 	engine.Use(mws.Session(h.config.Session))
 	// 使用 Gzip 压缩中间件

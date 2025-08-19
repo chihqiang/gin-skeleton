@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"wangzhiqiang/skeleton/app/admin/models"
+	"wangzhiqiang/skeleton/pkg/httpx/mws"
 )
 
 func AccessLog(db *gorm.DB) gin.HandlerFunc {
@@ -58,6 +59,7 @@ func AccessLog(db *gorm.DB) gin.HandlerFunc {
 			Method:    c.Request.Method,
 			Path:      c.Request.URL.Path,
 			UserAgent: c.Request.UserAgent(),
+			RequestID: mws.GetRequestID(c),
 			UserID:    userID,
 			Status:    c.Writer.Status(),
 			Latency:   time.Since(start).Milliseconds(),

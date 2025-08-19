@@ -12,8 +12,8 @@ type SysAccessLog struct {
 	Method    string `gorm:"type:varchar(10);comment:请求方法" json:"method"`
 	Request   string `gorm:"type:longtext;comment:请求内容(截断1000字符)" json:"request"`
 	Ip        string `gorm:"type:varchar(45);comment:请求IP" json:"ip"`
+	RequestID string `gorm:"type:varchar(100);comment:请求唯一表示" json:"request_id"`
 	UserAgent string `gorm:"type:varchar(255);comment:请求User-Agent" json:"user_agent"`
-
 	// ---------------------- 响应 ----------------------
 	Status   int    `gorm:"type:int;index;comment:响应状态" json:"status"`
 	Latency  int64  `gorm:"type:bigint;comment:延迟(毫秒)" json:"latency"` // 存储毫秒
