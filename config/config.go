@@ -9,6 +9,7 @@ import (
 	"wangzhiqiang/skeleton/pkg/httpx/mws"
 	"wangzhiqiang/skeleton/pkg/jwts"
 	"wangzhiqiang/skeleton/pkg/logger"
+	"wangzhiqiang/skeleton/pkg/queue"
 	"wangzhiqiang/skeleton/pkg/redisx"
 )
 
@@ -19,15 +20,9 @@ type Config struct {
 	Database *database.Config `yaml:"database" json:"database,omitempty"` // 数据库配置，包括驱动类型、连接信息、连接池参数等
 	Logger   *logger.Config   `yaml:"logger" json:"logger,omitempty"`     // 日志记录器配置，包括日志级别、文件路径、格式、切割与压缩策略
 	Redis    *redisx.Config   `yaml:"redis" json:"redis,omitempty"`       // Redis 配置，包括地址、认证信息及数据库编号
-	Queue    *QueueConfig     `yaml:"queue" json:"queue,omitempty"`       // 队列配置，包括队列名称和使用的 Redis 实例
+	Queue    *queue.Config    `yaml:"queue" json:"queue,omitempty"`       // 队列配置，包括队列名称和使用的 Redis 实例
 	JWT      *jwts.Config     `yaml:"jwt" json:"jwt,omitempty"`           // JWT 配置，包括密钥、过期时间、签发者和受众信息
 	System   *SystemConfig    `yaml:"system" json:"system,omitempty"`     // 系统配置，包括超级管理员 ID 等全局系统参数
-}
-
-// QueueConfig 队列配置结构体
-type QueueConfig struct {
-	Redis *redisx.Config `yaml:"redis" json:"redis,omitempty"`
-	Queue string         `yaml:"queue" json:"queue,omitempty"`
 }
 
 type SystemConfig struct {
@@ -56,7 +51,7 @@ var (
 		Addr: "localhost:6379",
 		DB:   0,
 	}
-	defaultQueue = &QueueConfig{
+	defaultQueue = &queue.Config{
 		Queue: "skeleton",
 	}
 	defaultSystem = &SystemConfig{

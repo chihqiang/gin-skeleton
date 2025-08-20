@@ -15,7 +15,7 @@ type EmailTask struct {
 	Attempts int    `json:"attempts"` // ✅ 建议改为 int（见下）
 }
 
-func (e *EmailTask) Execute(ctx context.Context, queue queue.IQueue) {
+func (e *EmailTask) Execute(ctx context.Context, queue queue.IQueue) error {
 	apps, err := app.GetApps(ctx)
 	if err != nil {
 		confJSON, err := json.MarshalIndent(apps.Config, "", "  ")
@@ -39,4 +39,5 @@ func (e *EmailTask) Execute(ctx context.Context, queue queue.IQueue) {
 			_ = queue.Push(e, time.Second*5)
 		}
 	*/
+	return nil
 }

@@ -42,16 +42,16 @@ func ProvideJWT(cfg *config.Config) *jwts.JWT {
 	return jwts.NewJWT(cfg.JWT)
 }
 
-func ProvideQueue(redis *redis.Client, cfg *config.Config, tasks []queue.ITask) queue.IQueue {
+func ProvideQueue(rds *redis.Client, db *gorm.DB, cfg *config.Config, tasks []queue.ITask) (queue.IQueue, error) {
 	if cfg.Queue == nil {
-		cfg.Queue = &config.QueueConfig{Queue: "skeleton"}
+		cfg.Queue = &queue.Config{Queue: "skeleton"}
 	}
-	if cfg.Queue.Redis != nil {
-		redis = redisx.New(cfg.Queue.Redis)
+	q, err := queue.New(cfg.Queue, db, rds)
+	if err != nil {
+		return nil, err
 	}
-	redisQueue := queue.NewRedisQueue(redis, cfg.Queue.Queue)
 	for _, task := range tasks {
-		_ = redisQueue.Register(task)
+		_ = q.Register(task)
 	}
-	return redisQueue
+	return q, nil
 }

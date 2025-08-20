@@ -43,4 +43,5 @@ redis:
   db: 2
 
 queue:
+  type: db
   queue: "skeleton"

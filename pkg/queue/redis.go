@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"log/slog"
 	"reflect"
 	"sync"
 	"time"
@@ -15,6 +16,16 @@ import (
 type taskWrapper struct {
 	Type string          `json:"type"` // 任务的唯一类型标识（包路径 + 类型名）
 	Data json.RawMessage `json:"data"` // 任务的具体数据（原始 JSON）
+}
+
+// RedisQueue 基于 Redis 实现的延时任务队列
+type RedisQueue struct {
+	rdb      *redis.Client           // Redis 客户端
+	taskKey  string                  // 普通任务队列的 Redis ZSet key
+	registry map[string]reflect.Type // 已注册的任务类型映射（typeName -> 反射类型）
+	mu       sync.RWMutex            // 读写锁，保护 registry 并发安全
+	ctx      context.Context         // 上下文，用于 Redis 操作取消/超时
+	cancel   context.CancelFunc
 }
 
 func NewRedisQueue(rdb *redis.Client, queue string) *RedisQueue {
@@ -28,20 +39,10 @@ func NewRedisQueue(rdb *redis.Client, queue string) *RedisQueue {
 	}
 }
 
-// RedisQueue 基于 Redis 实现的延时任务队列
-type RedisQueue struct {
-	rdb      *redis.Client           // Redis 客户端
-	taskKey  string                  // 普通任务队列的 Redis ZSet key
-	registry map[string]reflect.Type // 已注册的任务类型映射（typeName -> 反射类型）
-	mu       sync.RWMutex            // 读写锁，保护 registry 并发安全
-	ctx      context.Context         // 上下文，用于 Redis 操作取消/超时
-	cancel   context.CancelFunc
-}
-
 // Register 注册任务类型（消费端必须先注册）
 // 参数 task 必须是结构体指针类型，例如：&MyTask{}
 func (q *RedisQueue) Register(task ITask) error {
-	typeName, err := q.getTypeName(task) // 获取任务类型的唯一标识
+	typeName, err := GetTaskTypeName(task) // 获取任务类型的唯一标识
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func (q *RedisQueue) Start(val context.Context, interval time.Duration) {
 	for {
 		select {
 		case <-q.ctx.Done():
-			fmt.Println("[RedisQueue] Stopped")
+			slog.Warn("[REDIS QUEUE] Stopped")
 			return
 		case <-ticker.C:
 			task, err := q.Pop()
@@ -68,7 +69,9 @@ func (q *RedisQueue) Start(val context.Context, interval time.Duration) {
 			if task == nil {
 				continue
 			}
-			task.Execute(val, q)
+			if err := task.Execute(val, q); err != nil {
+				slog.Warn("[REDIS QUEUE] Execute task error", slog.Any("err", err))
+			}
 		}
 	}
 }
@@ -130,7 +133,7 @@ func (q *RedisQueue) Pop() (ITask, error) {
 // key   - 队列 Redis key
 // delay - 延迟时间，score 为任务可执行的时间戳（毫秒）
 func (q *RedisQueue) enqueueTask(key string, task ITask, delay time.Duration) error {
-	typeName, err := q.getTypeName(task) // 获取任务类型标识
+	typeName, err := GetTaskTypeName(task) // 获取任务类型标识
 	if err != nil {
 		return err
 	}
@@ -143,15 +146,4 @@ func (q *RedisQueue) enqueueTask(key string, task ITask, delay time.Duration) er
 		Score:  float64(time.Now().Add(delay).UnixMilli()), // 延迟执行时间
 		Member: wrap,                                       // 序列化后的任务数据
 	}).Err()
-}
-
-// getTypeName 获取任务的唯一类型标识（包路径/类型名）
-// 要求 task 必须是指针类型
-func (q *RedisQueue) getTypeName(task ITask) (string, error) {
-	t := reflect.TypeOf(task)
-	if t.Kind() != reflect.Ptr {
-		return "", fmt.Errorf("task must be a pointer")
-	}
-	// 返回：完整包路径/类型名
-	return t.Elem().PkgPath() + "/" + t.Elem().Name(), nil
 }
