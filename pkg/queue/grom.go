@@ -12,15 +12,13 @@ import (
 	"time"
 )
 
-type Task struct {
+type SysTask struct {
 	ID        uint      `gorm:"primaryKey"`
 	Type      string    `gorm:"size:255;index"`
 	Data      string    `gorm:"type:text"`
-	Status    string    `gorm:"size:32;index"` // pending / processing / done / failed
 	RunAt     time.Time `gorm:"index"`
 	ErrorMsg  string    `gorm:"type:text"`
 	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type Gorm struct {
@@ -34,7 +32,7 @@ type Gorm struct {
 
 // NewGormQueue 创建队列实例
 func NewGormQueue(db *gorm.DB) IQueue {
-	_ = db.AutoMigrate(&Task{})
+	_ = db.AutoMigrate(&SysTask{})
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Gorm{
 		db:       db,
@@ -66,46 +64,51 @@ func (q *Gorm) Push(task ITask, delay time.Duration) error {
 	if err != nil {
 		return err
 	}
-	model := Task{
-		Type:   typeName,
-		Data:   string(data),
-		Status: "pending",
-		RunAt:  time.Now().Add(delay),
+	model := SysTask{
+		Type:  typeName,
+		Data:  string(data),
+		RunAt: time.Now().Add(delay),
 	}
 	return q.db.Create(&model).Error
 }
 
-// Pop 获取一条任务
-func (q *Gorm) Pop() (ITask, *Task, error) {
-	var model Task
+func (q *Gorm) Pop() (ITask, error) {
+	var model SysTask
 	err := q.db.Transaction(func(tx *gorm.DB) error {
+		// 查出一条可执行任务
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("status = ? AND run_at <= ?", "pending", time.Now()).
+			Where("run_at <= ?", time.Now()).
 			Order("run_at ASC").
 			First(&model).Error; err != nil {
 			return err
 		}
-		return tx.Model(&model).Update("status", "processing").Error
+		// 删除任务
+		if err := tx.Delete(&model).Error; err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil, nil
+			return nil, nil
 		}
-		return nil, nil, err
+		return nil, err
 	}
-
+	// 获取任务类型
 	q.mu.RLock()
 	typ, ok := q.registry[model.Type]
 	q.mu.RUnlock()
 	if !ok {
-		return nil, &model, fmt.Errorf("unregistered task type: %s", model.Type)
+		return nil, fmt.Errorf("unregistered task type: %s", model.Type)
 	}
 
+	// 反序列化任务数据
 	task := reflect.New(typ).Interface().(ITask)
 	if err := json.Unmarshal([]byte(model.Data), task); err != nil {
-		return nil, &model, err
+		return nil, err
 	}
-	return task, &model, nil
+
+	return task, nil
 }
 
 // Start 启动队列
@@ -122,7 +125,7 @@ func (q *Gorm) Start(ctx context.Context, interval time.Duration) {
 			slog.Warn("[GORM QUEUE] Context canceled")
 			return
 		case <-ticker.C:
-			task, model, err := q.Pop()
+			task, err := q.Pop()
 			if err != nil {
 				slog.Warn("[GORM QUEUE] pop error", slog.Any("err", err))
 				continue
@@ -131,17 +134,12 @@ func (q *Gorm) Start(ctx context.Context, interval time.Duration) {
 				continue
 			}
 			q.wg.Add(1)
-			go func(task ITask, model *Task) {
+			go func(task ITask) {
 				err := task.Execute(ctx, q)
 				if err != nil {
-					_ = q.db.Model(model).Updates(map[string]interface{}{
-						"status":    "failed",
-						"error_msg": err.Error(),
-					}).Error
-				} else {
-					_ = q.db.Model(model).Update("status", "done").Error
+					slog.Warn("[GORM QUEUE] Execute task error", slog.Any("err", err))
 				}
-			}(task, model)
+			}(task)
 		}
 	}
 }
