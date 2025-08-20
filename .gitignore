@@ -31,3 +31,5 @@ coverage.txt
 # Editor/IDE
 /.idea/
 # .vscode/
+
+/skeleton

@@ -34,15 +34,11 @@ func ProvideRedis(cfg *config.Config) *redis.Client {
 	return redisx.New(cfg.Redis)
 }
 
-func ProvideQueueTask() []queue.ITask {
-	return queue.GetTasks()
-}
-
 func ProvideJWT(cfg *config.Config) *jwts.JWT {
 	return jwts.NewJWT(cfg.JWT)
 }
 
-func ProvideQueue(rds *redis.Client, db *gorm.DB, cfg *config.Config, tasks []queue.ITask) (queue.IQueue, error) {
+func ProvideQueue(rds *redis.Client, db *gorm.DB, cfg *config.Config) (queue.IQueue, error) {
 	if cfg.Queue == nil {
 		cfg.Queue = &queue.Config{Queue: "skeleton"}
 	}
@@ -50,6 +46,7 @@ func ProvideQueue(rds *redis.Client, db *gorm.DB, cfg *config.Config, tasks []qu
 	if err != nil {
 		return nil, err
 	}
+	tasks := queue.GetTasks()
 	for _, task := range tasks {
 		_ = q.Register(task)
 	}

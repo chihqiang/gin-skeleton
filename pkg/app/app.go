@@ -16,18 +16,13 @@ func New(cfg *config.Config) *App {
 
 	app.AddProvide(
 		func() *config.Config { return cfg },
-		ProvideLogger, // 提供日志记录器
-
-		ProvideDatabase, // 提供数据库
-		ProvideEnforcer, // 提供Casbin
-
+		ProvideLogger,     // 提供日志记录器
+		ProvideDatabase,   // 提供数据库
+		ProvideEnforcer,   // 提供Casbin
 		ProvideHTTPServer, // 提供服务器
-
-		ProvideRedis, // 提供 Redis 客户端
-		ProvideQueueTask,
-		ProvideQueue, // 提供队列
-
-		ProvideJWT, // 提供JWT服务
+		ProvideRedis,      // 提供 Redis 客户端
+		ProvideQueue,      // 提供队列
+		ProvideJWT,        // 提供JWT服务
 	)
 	//if cfg.Server.Mode != "debug" {
 	app.AddOpts(fx.NopLogger)

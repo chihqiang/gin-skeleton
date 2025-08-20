@@ -5,7 +5,7 @@ version := $(shell git describe --tags --always)
 # 用于自动化构建、测试和代码检查等任务
 
 # 变量定义
-OUTPUT := gin-skeleton  # 编译输出的可执行文件名
+OUTPUT := skeleton  # 编译输出的可执行文件名
 MAIN := main.go         # 主程序入口文件
 
 # 检查目标
@@ -57,9 +57,7 @@ test:
 # 构建目标
 # 用于编译项目生成可执行文件
 build:
-	@go env -w GONOSUMDB='cnb.cool'  # 设置Go环境变量，忽略特定包的校验
 	@echo "🔧 Building $(OUTPUT) with version $(version)..."
-	# 编译命令: 启用模块支持，禁用CGO，设置链接参数(移除符号表和调试信息，设置版本号)
-	GO111MODULE=on CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=$(version)" -o $(OUTPUT) $(MAIN)
+	GO111MODULE=on go build -ldflags "-s -w -X main.version=$(version)" -o $(OUTPUT) $(MAIN)
 	@echo "✅ Build complete: $(OUTPUT)"
 
